@@ -1,0 +1,26 @@
+# WEBSITE CBT MODERN (COMPUTER-BASED TEST)
+
+**3 pengguna**:
+Admin
+- input data master :
+    akun guru ke web
+    input daftar nama siswa (dengan meng-upload file excel)
+    membuat nama kelas
+
+Guru
+- membuat soal
+- mengatur jadwal
+- mengawasi
+- mengambil nilai (perlu? = bisa di download bentuk file)
+
+Siswa
+- membuka website >> login
+- melihat jadwal ujian yang tersedia >> mengakses dengan token
+  >> yang diberikan guru
+- mengisi soal sampai selesai
+
+**Fitur Unggulan**:
+input data siswa lewat excel
+live monitoring guru (memantau status pengerjaan)
+pengaturan soal yang beragam (dari guru)
+system anti cheat
