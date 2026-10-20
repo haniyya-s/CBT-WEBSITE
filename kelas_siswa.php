@@ -1,20 +1,23 @@
+
 <?php
 date_default_timezone_set('Asia/Jakarta');
 
 session_start();
-require_once "koneksi.php";
 
-// Memastikan siswa sudah login
+// Koneksi database berada di folder utama CBT_WEB.
+require_once __DIR__ . '/../koneksi.php';
+
+// Pastikan siswa sudah login.
 if (
     !isset($_SESSION['id_siswa']) ||
     !isset($_SESSION['nama']) ||
     !isset($_SESSION['id_kelas'])
 ) {
-    header("Location: login.php");
+    header('Location: login_siswa.php');
     exit;
 }
 
-// Data siswa
+// Data siswa.
 $nama = htmlspecialchars(
     $_SESSION['nama'],
     ENT_QUOTES,
@@ -23,7 +26,7 @@ $nama = htmlspecialchars(
 
 $id_kelas = (int) $_SESSION['id_kelas'];
 
-// Mengambil data ujian sesuai kelas siswa
+// Ambil ujian berdasarkan kelas siswa.
 $query = "SELECT id_ujian, nama_ujian, durasi_waktu, tanggal_ujian
           FROM ujian
           WHERE id_kelas = ?
@@ -32,15 +35,16 @@ $query = "SELECT id_ujian, nama_ujian, durasi_waktu, tanggal_ujian
 $stmt = mysqli_prepare($conn, $query);
 
 if (!$stmt) {
-    die("Gagal menyiapkan query: " . htmlspecialchars(mysqli_error($conn)));
+    http_response_code(500);
+    exit('Terjadi kesalahan saat mengambil daftar ujian.');
 }
 
-mysqli_stmt_bind_param($stmt, "i", $id_kelas);
+mysqli_stmt_bind_param($stmt, 'i', $id_kelas);
 mysqli_stmt_execute($stmt);
 
 $result = mysqli_stmt_get_result($stmt);
 
-// Waktu sekarang
+// Waktu saat ini.
 $sekarang = new DateTime();
 ?>
 
@@ -50,7 +54,7 @@ $sekarang = new DateTime();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Halaman Kelas | CBT</title>
+    <title>Daftar Ujian - CBT</title>
 
     <link
         href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
@@ -74,7 +78,7 @@ $sekarang = new DateTime();
     </div>
 
     <!-- Daftar ujian -->
-    <div class="card mt-4">
+    <div class="card mt-4 shadow-sm">
         <div class="card-header fw-bold">
             Jadwal dan Daftar Ujian
         </div>
@@ -101,23 +105,26 @@ $sekarang = new DateTime();
 
                         <?php while ($ujian = mysqli_fetch_assoc($result)): ?>
                             <?php
-                            $tanggal = new DateTime($ujian['tanggal_ujian']);
+                            $tanggal = new DateTime(
+                                $ujian['tanggal_ujian']
+                            );
+
                             $durasi = (int) $ujian['durasi_waktu'];
 
                             $waktuSelesai = clone $tanggal;
                             $waktuSelesai->modify("+{$durasi} minutes");
 
                             if ($sekarang < $tanggal) {
-                                $status = "Belum dimulai";
-                                $badge = "bg-warning text-dark";
+                                $status = 'Belum dimulai';
+                                $badge = 'bg-warning text-dark';
                                 $bisaMulai = false;
                             } elseif ($sekarang < $waktuSelesai) {
-                                $status = "Sedang berlangsung";
-                                $badge = "bg-success";
+                                $status = 'Sedang berlangsung';
+                                $badge = 'bg-success';
                                 $bisaMulai = true;
                             } else {
-                                $status = "Selesai";
-                                $badge = "bg-secondary";
+                                $status = 'Selesai';
+                                $badge = 'bg-secondary';
                                 $bisaMulai = false;
                             }
                             ?>
@@ -137,7 +144,9 @@ $sekarang = new DateTime();
                                     <?= $tanggal->format('d-m-Y H:i') ?>
                                 </td>
 
-                                <td><?= $durasi ?> menit</td>
+                                <td>
+                                    <?= $durasi ?> menit
+                                </td>
 
                                 <td>
                                     <span class="badge <?= $badge ?>">
@@ -148,13 +157,14 @@ $sekarang = new DateTime();
                                 <td>
                                     <?php if ($bisaMulai): ?>
                                         <a
-                                            href="ujian.php?id=<?= (int) $ujian['id_ujian'] ?>"
+                                            href="ujian_siswa.php?id=<?= (int) $ujian['id_ujian'] ?>"
                                             class="btn btn-primary btn-sm"
                                         >
                                             Mulai Tes
                                         </a>
                                     <?php else: ?>
                                         <button
+                                            type="button"
                                             class="btn btn-secondary btn-sm"
                                             disabled
                                         >
@@ -184,7 +194,7 @@ $sekarang = new DateTime();
 
     <!-- Tombol keluar -->
     <div class="mt-3 text-end">
-        <a href="logout.php" class="btn btn-outline-danger">
+        <a href="logout_siswa.php" class="btn btn-outline-danger">
             Keluar
         </a>
     </div>
@@ -199,4 +209,3 @@ $sekarang = new DateTime();
 <?php
 mysqli_stmt_close($stmt);
 ?>
-```
